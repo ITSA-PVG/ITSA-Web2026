@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import SlicedWaves from './components/background/SlicedWaves';
 import BranchedMenu from './components/navigation/BranchedMenu';
 import SplitFlapText from './components/text/SplitFlapText';
@@ -8,11 +8,20 @@ import PlaceholderPage from './pages/PlaceholderPage';
 import TeamPage from './pages/TeamPage';
 import { itsaMenuItems } from './data/navigationData';
 
-/* ?? Spring presets ?? */
+/* Team 6 Home Sections & Global Footer */
+import AboutTeaser from './components/home/AboutTeaser';
+import DomainsStrip from './components/home/DomainStrip';
+import UpcomingEventsPreview from './components/home/UpcomingEventsPreview';
+import TeamPreview from './components/home/TeamPreview';
+import QuoteBand from './components/home/QuoteBand';
+import FinalCTA from './components/home/FinalCTA';
+import Footer from './components/sections/Footer';
+
+/* Spring presets */
 const SPRING_CRISP = { type: 'spring', stiffness: 160, damping: 22, mass: 1 };
 const SPRING_SNAP = { type: 'spring', stiffness: 220, damping: 26, mass: 0.8 };
 
-/* ?? Entrance variants ?? */
+/* Entrance variants */
 const logoVariants = {
   hidden: { opacity: 0, y: -22, scale: 0.88, filter: 'blur(8px) brightness(2.4)' },
   visible: {
@@ -51,10 +60,17 @@ const PAGE_MAP = {
 export default function App() {
   const [activePage, setActivePage] = useState(null);
   const scrollRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
 
-  /* scroll-linked fade for the content section */
+  /* Scroll-linked transforms respecting prefers-reduced-motion */
   const { scrollYProgress } = useScroll({ container: scrollRef });
   const sectionOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0.92]);
+  const heroParallaxY = useTransform(
+    scrollYProgress,
+    [0, 0.25],
+    prefersReducedMotion ? [0, 0] : [0, -45]
+  );
+  const scrollCueOpacity = useTransform(scrollYProgress, [0, 0.06], [0.75, 0]);
 
   const handleSelect = (value) => {
     setActivePage(PAGE_MAP[value] ? value : null);
@@ -71,14 +87,14 @@ export default function App() {
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', background: '#09090b' }}>
 
-      {/* ?? Background ?? */}
+      {/* Background */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <SlicedWaves color1="#3b82f6" color2="#eab308" color3="#a7d661"
           ribbons={3} spacing={28} perspective={0.45} blur={0.6} glow={1}
           position={0.78} mouseInteraction={true} />
       </div>
 
-      {/* ?? Logo ? top centre (click to go home) ?? */}
+      {/* Logo — top centre (click to go home) */}
       <motion.div variants={logoVariants} initial="hidden" animate="visible"
         style={{ position: 'absolute', top: 24, left: '50%', translateX: '-50%', zIndex: 50 }}>
         <motion.button
@@ -96,7 +112,7 @@ export default function App() {
         </motion.button>
       </motion.div>
 
-      {/* ?? Scroll container — hidden when any page is active so home content doesn't show through ?? */}
+      {/* Scroll container — hidden when any page is active so home content doesn't show through */}
       <div ref={scrollRef} style={{
         position: 'absolute', inset: 0, zIndex: 5,
         overflowY: 'scroll',
@@ -104,29 +120,27 @@ export default function App() {
         visibility: activePage ? 'hidden' : 'visible',
         pointerEvents: activePage ? 'none' : 'auto',
       }}>
-        {/* tall canvas so scroll-linked transforms have range */}
-        <div style={{ height: '160vh', position: 'relative' }}>
-
+        {/* Hero section with subtle parallax */}
+        <div style={{ height: '105vh', position: 'relative' }}>
           <div style={{
             position: 'sticky', top: 0, height: '100vh',
             overflow: 'hidden', pointerEvents: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-
-            {/* ?? Main content layer ?? */}
             <motion.div
               variants={contentVariants}
               initial="hidden"
               animate="visible"
               style={{
                 opacity: sectionOpacity,
+                y: heroParallaxY,
                 textAlign: 'center',
                 width: 'min(1180px, calc(100vw - 300px))',
                 padding: '0 1rem',
                 pointerEvents: 'none',
               }}
             >
-              {/* ?? MaskedHeading: full ITSA name ?? */}
+              {/* MaskedHeading: full ITSA name */}
               <MaskedHeading
                 text="Information Technology Students Association"
                 tag="h2"
@@ -135,8 +149,8 @@ export default function App() {
                 poster="https://picsum.photos/id/0/1400/400"
                 reveal="blur"
                 trigger="view"
-                parallax={20}
-                drift={12}
+                parallax={prefersReducedMotion ? 0 : 20}
+                drift={prefersReducedMotion ? 0 : 12}
                 brightness={1.15}
                 saturation={1.5}
                 spotlight={false}
@@ -151,7 +165,6 @@ export default function App() {
                 style={{
                   color: '#adf4ff',
                   marginBottom: '20px',
-                  /*fontFamily: '"Anton", "Bebas Neue", sans-serif'*/
                   fontFamily: 'Anton',
                   textTransform: 'uppercase',
                 }}
@@ -171,7 +184,7 @@ export default function App() {
                 PVG&rsquo;s COET &amp; M
               </p>
 
-              {/* ?? SplitFlapText year tag (moved from hero) ?? */}
+              {/* SplitFlapText year tag */}
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
                 <SplitFlapText
                   words={['2026-2027']}
@@ -196,7 +209,7 @@ export default function App() {
                 />
               </div>
 
-              {/* ?? MaskedHeading: tagline ?? */}
+              {/* MaskedHeading: tagline */}
               <MaskedHeading
                 text="By the students, For the students."
                 tag="p"
@@ -204,8 +217,8 @@ export default function App() {
                 src="https://www.pexels.com/download/video/8482781/"
                 reveal="wipe"
                 trigger="view"
-                parallax={10}
-                drift={6}
+                parallax={prefersReducedMotion ? 0 : 10}
+                drift={prefersReducedMotion ? 0 : 6}
                 brightness={1.0}
                 saturation={1.2}
                 spotlight={false}
@@ -224,11 +237,43 @@ export default function App() {
               />
             </motion.div>
 
+            {/* Scroll Indicator */}
+            <motion.div
+              style={{
+                position: 'absolute',
+                bottom: '28px',
+                left: '50%',
+                translateX: '-50%',
+                opacity: scrollCueOpacity,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '6px',
+                color: '#adf4ff',
+                fontSize: '0.75rem',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase'
+              }}
+            >
+              <span>Scroll to explore</span>
+              <span style={{ fontSize: '1.1rem' }}>&darr;</span>
+            </motion.div>
           </div>
+        </div>
+
+        {/* Landing Page Sections (Team 6) */}
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <AboutTeaser />
+          <DomainsStrip onNavigate={handleSelect} />
+          <UpcomingEventsPreview onNavigate={handleSelect} />
+          <TeamPreview onNavigate={handleSelect} />
+          <QuoteBand />
+          <FinalCTA onNavigate={handleSelect} />
+          <Footer onNavigate={handleSelect} />
         </div>
       </div>
 
-      {/* ?? Page overlay ?? */}
+      {/* Page overlay */}
       <AnimatePresence mode="wait">
         {PageComponent && (
           <PageComponent
@@ -240,7 +285,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* ?? BranchedMenu ? always on top ?? */}
+      {/* BranchedMenu — always on top */}
       <motion.div variants={menuVariants} initial="hidden" animate="visible"
         style={{ position: 'absolute', top: 0, left: 0, zIndex: 30, padding: '2rem' }}>
         <BranchedMenu items={itsaMenuItems} defaultOpen={-1} onSelect={handleSelect}
